@@ -4,8 +4,12 @@ import '@testing-library/jest-dom/extend-expect';
 import { formatAmountInCurrency } from '../../utils/formatAmountInCurrency';
 
 describe('Component ResultBox', () => {
+  afterEach(() => {
+    cleanup();
+  });
+  
   it('should render without crashing', () => {
-    render(<ResultBox ResultBox from="PLN" to="USD" amount={100} />);
+    render(<ResultBox from="PLN" to="USD" amount={100} />);
   });
   
   const testCases = [
@@ -22,21 +26,25 @@ describe('Component ResultBox', () => {
   ];
 
   for (const testObj of testCases) {
-    if (testObj >= 0) {
+    const value = parseInt(testObj.amount);
+    const curr1 = testObj.from;
+    const curr2 = testObj.to;
+    
+    if (value >= 0) {
       it('should render proper info about conversion when currency1 -> currency2', () => {
-        const value = parseInt(testObj.amount);
-        const curr1 = testObj.from;
-        const curr2 = testObj.to;
-        let expectedValue = curr1 === curr2 ? value : curr1 === 'PLN' && curr2 === 'USD' ? (value / 3.5) : (value * 3.5);
+        let expectedValue = curr1 === curr2
+        ? value
+        : curr1 === 'PLN' && curr2 === 'USD'
+        ? (value / 3.5)
+        : (value * 3.5);
         
-        render(<ResultBox ResultBox from={curr1} to={curr2} amount={value} />);
+        render(<ResultBox from={curr1} to={curr2} amount={value} />);
         const output = screen.getByTestId('output');
         expect(output).toHaveTextContent(`${formatAmountInCurrency(value, curr1)} = ${formatAmountInCurrency(expectedValue, curr2)}`);
-        cleanup()
       });
-    } else if (testObj < 0) {
+    } else if (value < 0) {
       it('should render proper info if value is less than zero', () => {
-        render(<ResultBox from="USD" to="PLN" amount={testObj} />);
+        render(<ResultBox from={curr1} to={curr2} amount={value} />);
         const output = screen.getByTestId('output');
         expect(output).toHaveTextContent('Wrong value...')
       });
